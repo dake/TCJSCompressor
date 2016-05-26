@@ -1,2 +1,2 @@
 # TCJSCompressor
-mpress javascript for iOS and OSX
+Compress javascript for iOS and OSX with JSMin.
