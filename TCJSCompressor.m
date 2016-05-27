@@ -21,17 +21,6 @@
     FILE *_out;
 }
 
-- (void)dealloc
-{
-    if (NULL != _in) {
-        fclose(_in);
-    }
-    
-    if (NULL != _out) {
-        fclose(_out);
-    }
-}
-
 - (instancetype)init
 {
     self = [super init];
@@ -54,7 +43,18 @@
         TCJSCompressor *core = [[TCJSCompressor alloc] init];
         core->_in = fileIn;
         core->_out = fileOut;
-        return jsmin(core, err);
+        if (jsmin(core, err)) {
+            fclose(fileIn);
+            fclose(fileOut);
+            return YES;
+        }
+    } else {
+        if (NULL != err) {
+            NSError *error = [NSError errorWithDomain:NSStringFromClass(self)
+                                                 code:-1
+                                             userInfo:@{NSLocalizedDescriptionKey: @"file path invalid."}];
+            *err = error;
+        }
     }
     
     if (NULL != fileIn) {
@@ -63,13 +63,7 @@
     
     if (NULL != fileOut) {
         fclose(fileOut);
-    }
-    
-    if (NULL != err) {
-        NSError *error = [NSError errorWithDomain:NSStringFromClass(self)
-                                             code:-1
-                                         userInfo:@{NSLocalizedDescriptionKey: @"file path invalid."}];
-        *err = error;
+        [[NSFileManager defaultManager] removeItemAtPath:outPath error:NULL];
     }
     
     return NO;
